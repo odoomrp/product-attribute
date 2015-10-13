@@ -29,6 +29,7 @@ Contributors
 
 * Angel Moya <angel.moya@domatix.com>
 * Graeme Gellatly <g@o4sb.com>
+* Oihane Crucelaegui <oihanecrucelaegi@avanzosc.es>
 
 Maintainer
 ----------

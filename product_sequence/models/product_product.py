@@ -31,32 +31,31 @@ def update_null_and_slash_codes(cr):  # pragma: no cover
     :param cr: database cursor
     :return: void
     """
-    cr.execute("UPDATE product_product "
-               "SET default_code = '!!mig!!' || id "
-               "WHERE default_code IS NULL OR default_code = '/';")
+    cr.execute("""UPDATE product_product
+                     SET default_code = '!!mig!!' || id
+                   WHERE default_code IS NULL OR default_code = '/';""")
 
 
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
     default_code = fields.Char(
-        string='Reference',
-        size=64,
-        select=True,
-        required=True,
-        default='/')
+        string='Reference', select=True, required=True, default='/')
 
     _sql_constraints = [
-        ('uniq_default_code',
-         'unique(default_code)',
+        ('uniq_default_code', 'unique(default_code)',
          'The reference must be unique'),
     ]
 
     @api.model
     def create(self, vals):
-        if 'default_code' not in vals or vals['default_code'] == '/':
-            vals['default_code'] = self.env['ir.sequence'].get(
-                'product.product')
+        if vals.get('default_code', '/') == '/'and vals.get('categ_id'):
+            categ = self.env['product.category'].browse(vals['categ_id'])
+            sequence = (categ.sequence_id or
+                        self.env.ref('product_sequence.seq_product_auto'))
+            vals['default_code'] = (
+                sequence and
+                self.env['ir.sequence'].next_by_id(sequence.id))
         return super(ProductProduct, self).create(vals)
 
     @api.multi
@@ -76,5 +75,4 @@ class ProductProduct(models.Model):
             default.update({
                 'default_code': self.default_code + _('-copy'),
             })
-
         return super(ProductProduct, self).copy(default)
